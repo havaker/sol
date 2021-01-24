@@ -17,7 +17,9 @@ use camera::FPCamera;
 use interaction::Interaction;
 
 const CUBE_TEXTURE_PATH: &str = "assets/texture.png";
+//const CUBE_TEXTURE_PATH: &str = "assets/Earth_TEXTURE_CM.tga";
 const CUBE_MODEL_PATH: &str = "assets/cube-textured.obj";
+//const CUBE_MODEL_PATH: &str = "assets/Earth_tr.obj";
 
 const VERTEX_SHADER_SRC: &str = "src/vert.glsl";
 const FRAGMENT_SHADER_SRC: &str = "src/frag.glsl";

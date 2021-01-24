@@ -3,10 +3,6 @@ use nalgebra_glm as glm;
 pub struct FPCamera {
     position: glm::Vec3,
 
-    front: glm::Vec3,
-    up: glm::Vec3,
-    right: glm::Vec3,
-
     world_up: glm::Vec3,
 
     yaw: f32,
@@ -15,27 +11,30 @@ pub struct FPCamera {
 
 impl FPCamera {
     pub fn new(position: glm::Vec3, yaw: f32, pitch: f32) -> FPCamera {
-        let mut camera = FPCamera {
+        let camera = FPCamera {
             position,
-
-            front: glm::vec3(0.0, 0.0, -1.0),
-            up: glm::zero(),
-            right: glm::zero(),
 
             world_up: glm::vec3(0.0, 1.0, 0.0),
 
             yaw,
             pitch,
         };
-        camera.update();
 
         camera
     }
 
     pub fn move_position(&mut self, direction: &glm::Vec3) {
-        self.position += direction.x * self.right;
-        self.position += direction.y * self.up;
-        self.position += direction.z * self.front;
+        let mut front = self.calculate_front();
+
+        // move only along the xz plane
+        front.y = 0.0;
+        front.normalize_mut();
+
+        let (right, up) = self.calculate_right_and_up(&front);
+
+        self.position += direction.x * right;
+        self.position += direction.y * up;
+        self.position += direction.z * front;
     }
 
     pub fn rotate(&mut self, delta_yaw: f32, delta_pitch: f32) {
@@ -51,23 +50,27 @@ impl FPCamera {
         if self.pitch < -PI / 2.0 {
             self.pitch = -PI / 2.0;
         }
-
-        self.update();
     }
 
     pub fn view(&self) -> glm::Mat4 {
-        glm::look_at(&self.position, &(self.position + self.front), &self.up)
+        let front = self.calculate_front();
+        let (_, up) = self.calculate_right_and_up(&front);
+
+        glm::look_at(&self.position, &(self.position + front), &up)
     }
 
-    fn update(&mut self) {
-        // calculate then new self.front vector
+    fn calculate_front(&self) -> glm::Vec3 {
         let x = self.yaw.cos() * self.pitch.cos();
         let y = self.pitch.sin();
         let z = self.yaw.sin() * self.pitch.cos();
-        self.front = glm::Vec3::new(x, y, z).normalize();
 
-        // re-calculate self.right and self.up
-        self.right = self.front.cross(&self.world_up).normalize();
-        self.up = self.right.cross(&self.front).normalize();
+        glm::Vec3::new(x, y, z).normalize()
+    }
+
+    fn calculate_right_and_up(&self, front: &glm::Vec3) -> (glm::Vec3, glm::Vec3) {
+        let right = front.cross(&self.world_up).normalize();
+        let up = right.cross(&front).normalize();
+
+        (right, up)
     }
 }
