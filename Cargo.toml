@@ -11,3 +11,6 @@ glium = "0.26"
 obj-rs = { version = "0.6", features = ["glium"] }
 nalgebra-glm = "0.3"
 image = "0.23.12"
+
+[profile.dev.package."*"]
+opt-level = 2

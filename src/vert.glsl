@@ -1,4 +1,4 @@
-#version 140
+#version 420
 
 in vec3 position;
 in vec3 normal;
@@ -18,7 +18,6 @@ void main() {
     texture_coords = texture.xy;
 
     frag_normal = vec3(mat3(transpose(inverse(model))) * normal);
-    //frag_normal = normal;
     frag_pos = vec3(model * vec4(position, 1.0));
 
 }

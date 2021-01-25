@@ -19,6 +19,7 @@ impl Assets {
 
         Ok(Self { obj, img })
     }
+
     fn load_obj(obj_path: &str) -> Result<Obj<TexturedVertex, u16>, ObjError> {
         use std::fs::File;
         use std::io::BufReader;
