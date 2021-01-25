@@ -35,16 +35,19 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     let sun = sun_loader.join().unwrap();
     let moon = moon_loader.join().unwrap();
 
+    let resolution = LogicalSize::new(800, 600);
+    let aspect = resolution.width as f32 / resolution.height as f32;
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
-        .with_inner_size(LogicalSize::new(800.0, 600.0))
+        .with_inner_size(resolution)
         .with_title("})");
     let context = ContextBuilder::new();
     let display = glium::Display::new(window, context, &event_loop)?;
 
     let mut solar = Solar::new(&sun, &earth, &moon, &skybox, &display)?;
 
-    let perspective: glm::Mat4 = glm::perspective(4.0 / 3.0, 3.14 / 4.0, 0.1, 100.0);
+    let perspective_creator = |aspect| glm::perspective(aspect, 3.14 / 4.0, 0.1, 100.0);
+    let mut perspective: glm::Mat4 = perspective_creator(aspect);
     // look toward z axis
     let camera = FPCamera::new(glm::vec3(5.0, 0.0, -14.0), PI / 2.0, 0.0);
     let mut interaction = Interaction::new(camera, 0.005, 1.0);
@@ -54,6 +57,10 @@ fn main() -> Result<(), Box<dyn error::Error>> {
             glutin::event::WindowEvent::CloseRequested => {
                 *control_flow = glutin::event_loop::ControlFlow::Exit;
                 return;
+            }
+            glutin::event::WindowEvent::Resized(size) => {
+                let aspect = size.width as f32 / size.height as f32;
+                perspective = perspective_creator(aspect);
             }
             ev => {
                 interaction.process_event(&ev);
