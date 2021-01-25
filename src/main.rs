@@ -22,9 +22,8 @@ use solar::Solar;
 fn main() -> Result<(), Box<dyn error::Error>> {
     let skybox_loader =
         thread::spawn(|| Assets::load("assets/cube-textured.obj", "assets/stars.jpeg").unwrap());
-    let earth_loader = thread::spawn(|| {
-        Assets::load("assets/Earth_tr.obj", "assets/Earth_TEXTURE_CM.tga").unwrap()
-    });
+    let earth_loader =
+        thread::spawn(|| Assets::load("assets/Earth_tr.obj", "assets/earth.png").unwrap());
     let sun_loader =
         thread::spawn(|| Assets::load("assets/Earth_tr.obj", "assets/sun.jpeg").unwrap());
     let moon_loader =
