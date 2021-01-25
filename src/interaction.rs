@@ -47,7 +47,7 @@ impl Interaction {
         delta
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self) -> f32 {
         let delta_time = self.compute_delta_time();
         let delta_direction = (self.direction - self.direction_complement) * delta_time;
         let movement = delta_direction * self.speed;
@@ -60,6 +60,8 @@ impl Interaction {
 
             self.camera.rotate(rotation.x, rotation.y);
         }
+
+        delta_time
     }
 
     fn process_keyboard_input(&mut self, input: glutin::event::KeyboardInput) {
