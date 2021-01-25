@@ -1,28 +1,26 @@
+use std::error;
+use std::f32::consts::PI;
+
 use glium::glutin::dpi::LogicalSize;
-use glium::glutin::event::{Event, WindowEvent};
-use glium::glutin::event_loop::{ControlFlow, EventLoop};
+use glium::glutin::event_loop::EventLoop;
 use glium::glutin::window::WindowBuilder;
 use glium::glutin::ContextBuilder;
-use glium::Program;
-
-use glium::{glutin, texture, Surface};
+use glium::{glutin, Surface};
 use nalgebra_glm as glm;
-use obj::{Obj, ObjError};
-use std::error;
 
 mod camera;
 mod interaction;
 mod model;
+mod solar;
 
 use camera::FPCamera;
 use interaction::Interaction;
-use model::{Assets, Model};
-
-const VERTEX_SHADER_SRC: &str = "src/vert.glsl";
-const FRAGMENT_SHADER_SRC: &str = "src/frag.glsl";
+use model::Assets;
+use solar::Solar;
 
 fn main() -> Result<(), Box<dyn error::Error>> {
-    let cube_assets = Assets::load("assets/cube-textured.obj", "assets/texture.png")?;
+    let earth = Assets::load("assets/Earth_tr.obj", "assets/Earth_TEXTURE_CM.tga")?;
+    //let sun = Assets::load("assets/Earth_tr.obj", "assets/sun.jpeg")?;
 
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
@@ -31,61 +29,23 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     let context = ContextBuilder::new();
     let display = glium::Display::new(window, context, &event_loop)?;
 
-    let cube = Model::new(&cube_assets, &display)?;
-
-    let program = Program::from_source(
-        &display,
-        &std::fs::read_to_string(VERTEX_SHADER_SRC)?,
-        &std::fs::read_to_string(FRAGMENT_SHADER_SRC)?,
-        None,
-    )?;
-
-    let params = glium::DrawParameters {
-        depth: glium::Depth {
-            test: glium::DepthTest::IfLess,
-            write: true,
-            ..Default::default()
-        },
-        ..Default::default()
-    };
+    let solar = Solar::new(&earth, &earth, &display)?;
 
     let perspective: glm::Mat4 = glm::perspective(4.0 / 3.0, 3.14 / 4.0, 0.1, 100.0);
-
-    let mut model: glm::Mat4 = glm::identity();
-    model = glm::scale(&model, &glm::vec3(0.5, 0.5, 0.5));
-
-    let light_pos: glm::Vec3 = glm::vec3(10.0, 10.0, 0.0);
-    let camera = FPCamera::new(glm::zero(), 0.0, 0.0);
+    // look toward z axis
+    let camera = FPCamera::new(glm::vec3(0.0, 0.0, -2.0), PI / 2.0, 0.0);
     let mut interaction = Interaction::new(camera, 0.005, 1.0);
 
     event_loop.run(move |ev, _, control_flow| {
-        let delta_time = interaction.update();
+        /*let delta_time =*/
+        interaction.update();
 
-        model = glm::rotate(
-            &model,
-            glm::radians(&glm::vec1(delta_time * 16.0))[0],
-            &glm::vec3(0.0, 1.0, 0.0),
-        );
+        let view = interaction.camera.view();
 
         let mut target = display.draw();
         target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
 
-        let view = interaction.camera.view();
-        target
-            .draw(
-                &cube.vertex_buffer,
-                &cube.index_buffer,
-                &program,
-                &glium::uniform! {
-                    tex: &cube.texture,
-                    model: *model.as_ref(),
-                    view: *view.as_ref(),
-                    perspective: *perspective.as_ref(),
-                    light_pos: *light_pos.as_ref()
-                },
-                &params,
-            )
-            .unwrap();
+        solar.draw(&view, &perspective, &mut target);
 
         target.finish().unwrap();
 
