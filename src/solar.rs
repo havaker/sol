@@ -7,8 +7,8 @@ use glm::{Mat4, Vec3};
 
 use crate::model::{Assets, Model};
 
-const VERTEX_SHADER_SRC: &str = "src/vert.glsl";
-const FRAGMENT_SHADER_SRC: &str = "src/frag.glsl";
+const VERTEX_SHADER_SRC: &str = "src/shaders/vert.glsl";
+const FRAGMENT_SHADER_SRC: &str = "src/shaders/frag.glsl";
 
 pub struct Solar {
     sun: Model,
